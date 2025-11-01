@@ -78,6 +78,21 @@ void Protocol::SendMcpMessage(const std::string& payload) {
     SendText(message);
 }
 
+void Protocol::SendListeningResult(const std::string& text) {
+    cJSON* root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "session_id", session_id_.c_str());
+    cJSON_AddStringToObject(root, "type", "listen");
+    cJSON_AddStringToObject(root, "state", "result");
+    cJSON_AddStringToObject(root, "text", text.c_str());
+
+    char* json = cJSON_PrintUnformatted(root);
+    if (json) {
+        SendText(json);
+        cJSON_free(json);
+    }
+    cJSON_Delete(root);
+}
+
 bool Protocol::IsTimeout() const {
     const int kTimeoutSeconds = 120;
     auto now = std::chrono::steady_clock::now();

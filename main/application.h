@@ -65,6 +65,8 @@ public:
     AecMode GetAecMode() const { return aec_mode_; }
     void PlaySound(const std::string_view& sound);
     AudioService& GetAudioService() { return audio_service_; }
+    ReminderManager& GetReminderManager() { return reminder_manager_; }
+    const ReminderManager& GetReminderManager() const { return reminder_manager_; }
 
 private:
     Application();

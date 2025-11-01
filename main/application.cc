@@ -511,130 +511,6 @@ void Application::Start() {
                 auto text = cJSON_GetObjectItem(root, "text");
                 if (cJSON_IsString(text)) {
                     ESP_LOGI(TAG, "<< %s", text->valuestring);
-
-                    // 解析 AI 回复中的提醒指令
-                    // 新格式: "[REMINDER_SET:delay=10,hour=-1,minute=-1,repeat=1,interval=0,msg=吃药]"
-                    std::string text_str = text->valuestring;
-
-                    // 查找 REMINDER_SET 指令
-                    size_t reminder_pos = text_str.find("[REMINDER_SET:");
-                    if (reminder_pos != std::string::npos) {
-                        ESP_LOGI(TAG, "🔍 Detected REMINDER_SET instruction");
-                        ESP_LOGI(TAG, "📝 Full text: [%s]", text_str.c_str());
-
-                        // 找到指令结束位置
-                        size_t end_pos = text_str.find("]", reminder_pos);
-                        if (end_pos != std::string::npos) {
-                            // 提取指令内容
-                            std::string instruction = text_str.substr(reminder_pos + 14, end_pos - reminder_pos - 14);
-                            ESP_LOGI(TAG, "📦 Instruction: [%s]", instruction.c_str());
-
-                            // 提取参数
-                            int delay_seconds = -1, hour = -1, minute = -1, repeat = 1, interval = 0;
-                            std::string reminder_message;
-
-                            // 解析 delay
-                            size_t delay_pos = instruction.find("delay=");
-                            if (delay_pos != std::string::npos) {
-                                sscanf(instruction.c_str() + delay_pos, "delay=%d", &delay_seconds);
-                                ESP_LOGI(TAG, "  📊 delay=%d", delay_seconds);
-                            }
-
-                            // 解析 hour
-                            size_t hour_pos = instruction.find("hour=");
-                            if (hour_pos != std::string::npos) {
-                                sscanf(instruction.c_str() + hour_pos, "hour=%d", &hour);
-                                ESP_LOGI(TAG, "  📊 hour=%d", hour);
-                            }
-
-                            // 解析 minute
-                            size_t minute_pos = instruction.find("minute=");
-                            if (minute_pos != std::string::npos) {
-                                sscanf(instruction.c_str() + minute_pos, "minute=%d", &minute);
-                                ESP_LOGI(TAG, "  📊 minute=%d", minute);
-                            }
-
-                            // 解析 repeat
-                            size_t repeat_pos = instruction.find("repeat=");
-                            if (repeat_pos != std::string::npos) {
-                                sscanf(instruction.c_str() + repeat_pos, "repeat=%d", &repeat);
-                                ESP_LOGI(TAG, "  📊 repeat=%d", repeat);
-                            }
-
-                            // 解析 interval
-                            size_t interval_pos = instruction.find("interval=");
-                            if (interval_pos != std::string::npos) {
-                                sscanf(instruction.c_str() + interval_pos, "interval=%d", &interval);
-                                ESP_LOGI(TAG, "  📊 interval=%d", interval);
-                            }
-
-                            // 解析 msg (格式: msg=内容,下一个参数 或 msg=内容])
-                            size_t msg_pos = instruction.find("msg=");
-                            if (msg_pos != std::string::npos) {
-                                size_t msg_start = msg_pos + 4;
-                                size_t msg_end = instruction.find_first_of(",]", msg_start);
-                                if (msg_end != std::string::npos) {
-                                    reminder_message = instruction.substr(msg_start, msg_end - msg_start);
-                                    ESP_LOGI(TAG, "  📊 msg='%s'", reminder_message.c_str());
-                                }
-                            }
-
-                        // 如果解析到有效参数,创建提醒
-                        if (delay_seconds > 0 || (hour >= 0 && hour < 24) || (minute >= 0 && minute < 60)) {
-                            ESP_LOGI(TAG, "✅ Creating reminder from AI response:");
-                            ESP_LOGI(TAG, "   delay_seconds=%d, hour=%d, minute=%d", delay_seconds, hour, minute);
-                            ESP_LOGI(TAG, "   repeat=%d, interval=%d, message='%s'", repeat, interval, reminder_message.c_str());
-
-                            Schedule([this, delay_seconds, hour, minute, repeat, interval, reminder_message]() {
-                                // 根据参数计算实际延迟时间
-                                uint32_t actual_delay = delay_seconds;
-
-                                // 如果指定了 hour 或 minute,计算到目标时间的延迟
-                                if ((hour >= 0 && hour < 24) || (minute >= 0 && minute < 60)) {
-                                    time_t now;
-                                    time(&now);
-                                    struct tm timeinfo;
-                                    localtime_r(&now, &timeinfo);
-
-                                    // 设置目标时间
-                                    if (hour >= 0 && hour < 24) {
-                                        timeinfo.tm_hour = hour;
-                                    }
-                                    if (minute >= 0 && minute < 60) {
-                                        timeinfo.tm_min = minute;
-                                    }
-                                    timeinfo.tm_sec = 0;
-
-                                    time_t target_time = mktime(&timeinfo);
-
-                                    // 如果目标时间已过,设置为明天
-                                    if (target_time <= now) {
-                                        target_time += 24 * 3600;
-                                    }
-
-                                    actual_delay = target_time - now;
-                                    ESP_LOGI(TAG, "⏰ Calculated delay for time-based reminder: %u seconds", actual_delay);
-                                }
-
-                                // 创建本地提醒
-                                uint32_t local_id = reminder_manager_.AddReminder(actual_delay, reminder_message);
-                                if (local_id > 0) {
-                                    ESP_LOGI(TAG, "✅ Reminder created successfully: local_id=%u", local_id);
-                                } else {
-                                    ESP_LOGE(TAG, "❌ Failed to create reminder");
-                                }
-
-                                // TODO: 实现重复提醒功能(repeat > 1 时)
-                                if (repeat > 1) {
-                                    ESP_LOGW(TAG, "⚠️ Repeat reminders not yet implemented (repeat=%d, interval=%d)", repeat, interval);
-                                }
-                            });
-                        } else {
-                            ESP_LOGW(TAG, "⚠️ No valid reminder parameters found in AI response");
-                        }
-                        }  // end if (end_pos != std::string::npos)
-                    }  // end if (reminder_pos != std::string::npos)
-
                     Schedule([this, display, message = std::string(text->valuestring)]() {
                         display->SetChatMessage("assistant", message.c_str());
                     });
@@ -772,38 +648,83 @@ void Application::MainEventLoop() {
         if (bits & MAIN_EVENT_REMINDER_TRIGGERED) {
             ESP_LOGI(TAG, "🚨 MainEventLoop: Handling REMINDER_TRIGGERED event");
             ESP_LOGI(TAG, "Reminder message: '%s'", pending_reminder_message_.c_str());
+            if (pending_reminder_message_.empty()) {
+                ESP_LOGW(TAG, "⚠️ Pending reminder message is empty, skipping");
+                continue;
+            }
 
             // 播放提示音
             ESP_LOGI(TAG, "🔊 Playing reminder notification sound");
             audio_service_.PlaySound(Lang::Sounds::OGG_POPUP);
             vTaskDelay(pdMS_TO_TICKS(500));
 
-            // 自动唤醒并播报提醒
-            if (device_state_ == kDeviceStateIdle && protocol_) {
-                ESP_LOGI(TAG, "📢 Device is idle, triggering reminder playback");
-
-                // 唤醒设备
-                ESP_LOGI(TAG, "🎤 Activating chat state (wake up device)");
-                ToggleChatState();
-                vTaskDelay(pdMS_TO_TICKS(800));  // 等待唤醒完成
-
-                // 模拟用户说"提醒我XXX"，触发 AI 播报
-                std::string query = "提醒我" + pending_reminder_message_;
-                ESP_LOGI(TAG, "💬 Simulating user query: '%s'", query.c_str());
-
-                // 使用 SendWakeWordDetected 模拟唤醒词触发
-                protocol_->SendWakeWordDetected(query);
-                ESP_LOGI(TAG, "✅ Reminder wake word sent successfully");
-
-                auto display = Board::GetInstance().GetDisplay();
-                display->SetChatMessage("user", query.c_str());
-
-                // 清空待处理消息
-                pending_reminder_message_.clear();
-            } else {
-                ESP_LOGW(TAG, "⚠️ Cannot trigger reminder: device_state=%d, protocol=%p",
-                         device_state_, protocol_.get());
+            if (!protocol_) {
+                ESP_LOGW(TAG, "⚠️ Protocol not ready, rescheduling reminder");
+                vTaskDelay(pdMS_TO_TICKS(200));
+                xEventGroupSetBits(event_group_, MAIN_EVENT_REMINDER_TRIGGERED);
+                continue;
             }
+
+            if (device_state_ == kDeviceStateSpeaking) {
+                ESP_LOGI(TAG, "⏳ Reminder waiting for speaking to finish, aborting current speech");
+                AbortSpeaking(kAbortReasonNone);
+                vTaskDelay(pdMS_TO_TICKS(200));
+                xEventGroupSetBits(event_group_, MAIN_EVENT_REMINDER_TRIGGERED);
+                continue;
+            }
+
+            if (device_state_ == kDeviceStateListening) {
+                ESP_LOGI(TAG, "⏳ Reminder waiting for listening to finish, stopping audio channel");
+                protocol_->SendStopListening();
+                if (protocol_->IsAudioChannelOpened()) {
+                    protocol_->CloseAudioChannel();
+                }
+                SetDeviceState(kDeviceStateIdle);
+                vTaskDelay(pdMS_TO_TICKS(200));
+                xEventGroupSetBits(event_group_, MAIN_EVENT_REMINDER_TRIGGERED);
+                continue;
+            }
+
+            if (device_state_ != kDeviceStateIdle) {
+                ESP_LOGW(TAG, "⚠️ Unexpected device state when triggering reminder: %d", device_state_);
+                vTaskDelay(pdMS_TO_TICKS(200));
+                xEventGroupSetBits(event_group_, MAIN_EVENT_REMINDER_TRIGGERED);
+                continue;
+            }
+
+            if (!protocol_->IsAudioChannelOpened()) {
+                ESP_LOGI(TAG, "🔄 Opening audio channel for reminder");
+                SetDeviceState(kDeviceStateConnecting);
+                if (!protocol_->OpenAudioChannel()) {
+                    ESP_LOGE(TAG, "❌ Failed to open audio channel for reminder");
+                    SetDeviceState(kDeviceStateIdle);
+                    vTaskDelay(pdMS_TO_TICKS(200));
+                    xEventGroupSetBits(event_group_, MAIN_EVENT_REMINDER_TRIGGERED);
+                    continue;
+                }
+                vTaskDelay(pdMS_TO_TICKS(200));
+            }
+
+            const std::string wake_word = "小智小智";
+            ESP_LOGI(TAG, "🎙️ Sending wake word: %s", wake_word.c_str());
+            protocol_->SendWakeWordDetected(wake_word);
+            vTaskDelay(pdMS_TO_TICKS(200));
+
+            listening_mode_ = kListeningModeManualStop;
+            SetDeviceState(kDeviceStateListening);
+            std::string query = "提醒时间到了" + pending_reminder_message_;
+            ESP_LOGI(TAG, "🗣️ Simulated reminder utterance: %s", query.c_str());
+            protocol_->SendStartListening(kListeningModeManualStop);
+            vTaskDelay(pdMS_TO_TICKS(200));
+            protocol_->SendListeningResult(query);
+            vTaskDelay(pdMS_TO_TICKS(100));
+            protocol_->SendStopListening();
+            ESP_LOGI(TAG, "✅ Reminder request delivered to cloud");
+
+            pending_reminder_message_.clear();
+            SetDeviceState(kDeviceStateIdle);
+            auto display = Board::GetInstance().GetDisplay();
+            display->SetChatMessage("user", query.c_str());
         }
     }
 }
@@ -914,6 +835,11 @@ void Application::SetDeviceState(DeviceState state) {
         default:
             // Do nothing
             break;
+    }
+
+    if (state == kDeviceStateIdle && !pending_reminder_message_.empty()) {
+        ESP_LOGI(TAG, "🔁 Device returned to idle with pending reminder, rescheduling");
+        xEventGroupSetBits(event_group_, MAIN_EVENT_REMINDER_TRIGGERED);
     }
 }
 

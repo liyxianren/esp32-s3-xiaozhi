@@ -1,6 +1,8 @@
 #include "wifi_board.h"
 #include "codecs/es8388_audio_codec.h"
 #include "display/lcd_display.h"
+#include "mcp_server.h"
+#include "reminder_tools.h"
 #include "application.h"
 #include "button.h"
 #include "config.h"
@@ -51,6 +53,10 @@ private:
     LcdDisplay* display_;
     XL9555* xl9555_;
     Esp32Camera* camera_;
+    void InitializeTools() {
+        InitializeReminderTools();
+        ESP_LOGI(TAG, "Reminder tools registered for atk_dnesp32s3");
+    }
 
     void InitializeI2c() {
         // Initialize I2C peripheral
@@ -194,6 +200,7 @@ public:
         InitializeSt7789Display();
         InitializeButtons();
         InitializeCamera();
+        InitializeTools();
     }
 
     virtual Led* GetLed() override {

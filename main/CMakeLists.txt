@@ -36,6 +36,7 @@ set(SOURCES "audio/audio_codec.cc"
             "device_state_event.cc"
             "assets.cc"
             "reminder_manager.cc"
+            "reminder_tools.cc"
             "main.cc"
             )
 
