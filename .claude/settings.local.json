@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo:*)",
+      "Bash(git --version:*)",
+      "Bash(idf.py:*)",
+      "Bash(powershell -Command \"$env:MCP_ENDPOINT = ''wss://api.xiaozhi.me/mcp/?token=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjM2MTEyNywiYWdlbnRJZCI6Mzk5NDc2LCJlbmRwb2ludElkIjoiYWdlbnRfMzk5NDc2IiwicHVycG9zZSI6Im1jcC1lbmRwb2ludCIsImlhdCI6MTc2MTg4MjQzMywiZXhwIjoxNzkzNDQwMDMzfQ.vUvf0BrUck__K5pzaeT1CSM4_KBVnornPTISVXhMebQFtP3o2Z3pxeTHmOZHkGFCEELA25q2XKEigTVe0YJiXA''; Write-Host ''MCP_ENDPOINT set successfully''\")",
+      "Bash(python mcp_pipe.py:*)",
+      "Bash(timeout /t 5)",
+      "Bash(python:*)",
+      "Bash(set MCP_ENDPOINT=wss://api.xiaozhi.me/mcp/?token=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjM2MTEyNywiYWdlbnRJZCI6Mzk5NDc2LCJlbmRwb2ludElkIjoiYWdlbnRfMzk5NDc2IiwicHVycG9zZSI6Im1jcC1lbmRwb2ludCIsImlhdCI6MTc2MTg4MjQzMywiZXhwIjoxNzkzNDQwMDMzfQ.vUvf0BrUck__K5pzaeT1CSM4_KBVnornPTISVXhMebQFtP3o2Z3pxeTHmOZHkGFCEELA25q2XKEigTVe0YJiXA)",
+      "Bash(cmd /c start_mcp.bat)",
+      "Bash(cmd /c \"C:\\Users\\Administrator\\Desktop\\xiaozhi-esp32-2.0.3\\build_firmware.bat\")",
+      "Bash(cmd /c \"cd c:\\Users\\Administrator\\Desktop\\xiaozhi-esp32-2.0.3 &amp; C:\\Espressif\\frameworks\\esp-idf-v5.4\\export.bat &amp; idf.py build\")",
+      "Bash(dir:*)",
+      "Bash(cmd /c \"del /q C:\\Users\\Administrator\\Desktop\\xiaozhi-esp32-2.0.3\\build\\*.*\")",
+      "Bash(cmd /c \"C:\\Espressif\\frameworks\\esp-idf-v5.4\\export.bat && idf.py set-target esp32s3 && idf.py build\")",
+      "Bash(cmd /c \"cd c:\\Users\\Administrator\\Desktop\\xiaozhi-esp32-2.0.3\\test_parse_reminder && C:\\Espressif\\frameworks\\esp-idf-v5.4\\export.bat && idf.py set-target esp32s3\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,5 @@
+# 音乐MCP服务器依赖包
+httpx>=0.24.0
+pydantic>=2.0.0
+aiofiles>=23.0.0
+websockets>=11.0.0

@@ -1,0 +1,170 @@
+{
+  "name": "免费音乐MCP服务器",
+  "description": "为小智AI音响提供免费音乐控制服务，支持搜索、播放、暂停、音量控制等功能",
+  "version": "1.0.0",
+  "endpoint_url": "wss://api.xiaozhi.me/mcp/?token=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQzNTg0NiwiYWdlbnRJZCI6NTU1NjIwLCJlbmRwb2ludElkIjoiYWdlbnRfNTU1NjIwIiwicHVycG9zZSI6Im1jcC1lbmRwb2ludCIsImlhdCI6MTc1NDk4NDMyMn0.jJsrIPxlMRIoFnLN2bfuYlOj8cLW0ovX3V2hasNLgihFR-QGLgDLc5Bud6f_HjseF4C73VSOzClRoZCFrsHMHw",
+  "transport": "websocket",
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "prompts": false
+  },
+  "tools": [
+    {
+      "name": "search_music",
+      "description": "搜索音乐",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "搜索关键词"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "返回结果数量",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "play_music",
+      "description": "播放音乐",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "song_id": {
+            "type": "string",
+            "description": "歌曲ID"
+          },
+          "song_name": {
+            "type": "string",
+            "description": "歌曲名称"
+          },
+          "artist": {
+            "type": "string",
+            "description": "歌手名称"
+          }
+        },
+        "required": ["song_id"]
+      }
+    },
+    {
+      "name": "pause_music",
+      "description": "暂停音乐",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "resume_music",
+      "description": "继续播放音乐",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "stop_music",
+      "description": "停止音乐",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "set_volume",
+      "description": "设置音量",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "volume": {
+            "type": "integer",
+            "description": "音量百分比",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": ["volume"]
+      }
+    },
+    {
+      "name": "add_to_playlist",
+      "description": "添加到播放列表",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "song_id": {
+            "type": "string",
+            "description": "歌曲ID"
+          },
+          "song_name": {
+            "type": "string",
+            "description": "歌曲名称"
+          },
+          "artist": {
+            "type": "string",
+            "description": "歌手名称"
+          }
+        },
+        "required": ["song_id"]
+      }
+    },
+    {
+      "name": "get_playlist",
+      "description": "获取播放列表",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "clear_playlist",
+      "description": "清空播放列表",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "next_song",
+      "description": "下一首歌",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "previous_song",
+      "description": "上一首歌",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "music://current_playlist",
+      "name": "当前播放列表",
+      "description": "显示当前播放列表中的所有歌曲"
+    },
+    {
+      "uri": "music://current_playing",
+      "name": "当前播放",
+      "description": "显示当前正在播放的歌曲信息"
+    }
+  ],
+  "usage_examples": [
+    "搜索周杰伦的歌曲",
+    "播放青花瓷",
+    "暂停音乐",
+    "音量调到80",
+    "下一首歌"
+  ]
+}

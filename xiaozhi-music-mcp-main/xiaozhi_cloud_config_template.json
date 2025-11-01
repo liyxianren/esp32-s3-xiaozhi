@@ -1,0 +1,150 @@
+{
+  "mcpServers": {
+    "xiaozhi-music-cloud": {
+      "command": "websocket",
+      "args": {
+        "url": "wss://YOUR-APP-NAME.up.railway.app",
+        "transport": "websocket"
+      },
+      "name": "小智免费音乐服务器（云端版）",
+      "description": "24小时在线的免费音乐MCP服务器，支持音乐搜索、播放控制和播放列表管理",
+      "version": "1.0.0",
+      "capabilities": {
+        "tools": {
+          "listChanged": true
+        },
+        "resources": {
+          "subscribe": true,
+          "listChanged": true
+        }
+      },
+      "tools": [
+        {
+          "name": "search_music",
+          "description": "搜索音乐",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "搜索关键词（歌曲名、歌手、专辑）"
+              },
+              "limit": {
+                "type": "integer",
+                "description": "返回结果数量限制",
+                "default": 10,
+                "minimum": 1,
+                "maximum": 50
+              }
+            },
+            "required": ["query"]
+          }
+        },
+        {
+          "name": "play_music",
+          "description": "播放音乐",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "song_id": {
+                "type": "string",
+                "description": "歌曲ID"
+              },
+              "song_name": {
+                "type": "string",
+                "description": "歌曲名称（可选，用于显示）"
+              }
+            },
+            "required": ["song_id"]
+          }
+        },
+        {
+          "name": "pause_music",
+          "description": "暂停音乐",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "resume_music",
+          "description": "继续播放音乐",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "stop_music",
+          "description": "停止音乐",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_volume",
+          "description": "设置音量",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "volume": {
+                "type": "integer",
+                "description": "音量大小（0-100）",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "required": ["volume"]
+          }
+        },
+        {
+          "name": "add_to_playlist",
+          "description": "添加到播放列表",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "song_id": {
+                "type": "string",
+                "description": "歌曲ID"
+              }
+            },
+            "required": ["song_id"]
+          }
+        },
+        {
+          "name": "get_playlist",
+          "description": "获取播放列表",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "clear_playlist",
+          "description": "清空播放列表",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "next_song",
+          "description": "下一首歌",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "previous_song",
+          "description": "上一首歌",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      ]
+    }
+  }
+}
