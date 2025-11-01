@@ -72,10 +72,14 @@ void InitializeReminderTools() {
 
     mcp_server.AddTool(
         "reminder.add",
-        "Add a reminder. Supports countdown (delay_seconds) and scheduled time (hour/minute). "
+        "Add a NEW reminder when user explicitly REQUESTS to set one (e.g., '提醒我...', 'X秒后提醒我...', 'X点提醒我...'). "
+        "IMPORTANT: DO NOT call this tool when:\n"
+        "  - Receiving a notification message like '提醒我：XXX时间到了' (this is a triggered reminder broadcast, NOT a request to set new reminder)\n"
+        "  - User is NOT asking to create a new reminder\n"
+        "When user says '提醒我：XXX时间到了', you should ONLY provide a friendly reminder response, DO NOT call reminder.add.\n"
         "Parameters:\n"
         "  delay_seconds: Countdown in seconds (optional when hour/minute is provided)\n"
-        "  message: Reminder text to speak when triggered\n"
+        "  message: MUST be a SHORT event name (2-4 Chinese characters only, e.g., '吃药', '起床', '做饭'). DO NOT use complete sentences or long text.\n"
         "  hour: Target hour for scheduled reminders (0-23, optional)\n"
         "  minute: Target minute for scheduled reminders (0-59, optional)\n"
         "  repeat: Number of repeats (reserved, defaults to 1)\n"

@@ -692,6 +692,8 @@ void Application::MainEventLoop() {
                 continue;
             }
 
+            // 方案A：直接发送唤醒词+提醒内容，让云端AI自然处理
+            // 关键：必须确保音频通道已打开，否则消息无法发送
             if (!protocol_->IsAudioChannelOpened()) {
                 ESP_LOGI(TAG, "🔄 Opening audio channel for reminder");
                 SetDeviceState(kDeviceStateConnecting);
@@ -702,29 +704,29 @@ void Application::MainEventLoop() {
                     xEventGroupSetBits(event_group_, MAIN_EVENT_REMINDER_TRIGGERED);
                     continue;
                 }
+                SetDeviceState(kDeviceStateIdle);
                 vTaskDelay(pdMS_TO_TICKS(200));
             }
 
-            const std::string wake_word = "小智小智";
-            ESP_LOGI(TAG, "🎙️ Sending wake word: %s", wake_word.c_str());
-            protocol_->SendWakeWordDetected(wake_word);
-            vTaskDelay(pdMS_TO_TICKS(200));
+            // 使用固定格式的prompt：提醒我：[事件]时间到了
+            // 这里的事件通常是短词如"吃药"、"起床"、"做饭"等
+            std::string query = "提醒我：" + pending_reminder_message_ + "时间到了";
+            ESP_LOGI(TAG, "🗣️ Sending reminder notification: %s", query.c_str());
+            protocol_->SendWakeWordDetected(query);
+            ESP_LOGI(TAG, "✅ Reminder notification delivered to cloud");
 
-            listening_mode_ = kListeningModeManualStop;
-            SetDeviceState(kDeviceStateListening);
-            std::string query = "提醒时间到了" + pending_reminder_message_;
-            ESP_LOGI(TAG, "🗣️ Simulated reminder utterance: %s", query.c_str());
-            protocol_->SendStartListening(kListeningModeManualStop);
-            vTaskDelay(pdMS_TO_TICKS(200));
-            protocol_->SendListeningResult(query);
-            vTaskDelay(pdMS_TO_TICKS(100));
-            protocol_->SendStopListening();
-            ESP_LOGI(TAG, "✅ Reminder request delivered to cloud");
+            // 设置设备状态为listening，以便接收和播放云端返回的音频
+            // 注意：AEC模式下使用realtime，否则使用auto_stop
+            SetListeningMode(aec_mode_ == kAecOff ? kListeningModeAutoStop : kListeningModeRealtime);
 
+            // 清空缓存，等待云端AI播报
             pending_reminder_message_.clear();
-            SetDeviceState(kDeviceStateIdle);
+
+            // 可选：在屏幕显示提醒内容
             auto display = Board::GetInstance().GetDisplay();
-            display->SetChatMessage("user", query.c_str());
+            if (display) {
+                display->SetChatMessage("user", query.c_str());
+            }
         }
     }
 }
