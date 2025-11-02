@@ -704,29 +704,35 @@ void Application::MainEventLoop() {
                     xEventGroupSetBits(event_group_, MAIN_EVENT_REMINDER_TRIGGERED);
                     continue;
                 }
-                SetDeviceState(kDeviceStateIdle);
+                // 通道打开成功后，等待200ms让连接稳定，但不改变设备状态
+                // 避免触发 SetDeviceState(kDeviceStateIdle) 导致状态混乱
                 vTaskDelay(pdMS_TO_TICKS(200));
             }
 
-            // 使用固定格式的prompt：提醒我：[事件]时间到了
-            // 这里的事件通常是短词如"吃药"、"起床"、"做饭"等
-            std::string query = "提醒我：" + pending_reminder_message_ + "时间到了";
-            ESP_LOGI(TAG, "🗣️ Sending reminder notification: %s", query.c_str());
-            protocol_->SendWakeWordDetected(query);
-            ESP_LOGI(TAG, "✅ Reminder notification delivered to cloud");
+            // 【测试阶段1】：只测试唤醒，不发送提醒消息
+            // 目标：验证唤醒是否正常，云端是否有记录
 
-            // 设置设备状态为listening，以便接收和播放云端返回的音频
-            // 注意：AEC模式下使用realtime，否则使用auto_stop
-            SetListeningMode(aec_mode_ == kAecOff ? kListeningModeAutoStop : kListeningModeRealtime);
+            std::string wake_word = audio_service_.GetLastWakeWord();
+            if (wake_word.empty()) {
+                wake_word = "小智小智";  // 默认唤醒词
+            }
 
-            // 清空缓存，等待云端AI播报
-            pending_reminder_message_.clear();
+            ESP_LOGI(TAG, "[PHASE 1 TEST] Sending wake word: %s", wake_word.c_str());
+            protocol_->SendWakeWordDetected(wake_word);
 
-            // 可选：在屏幕显示提醒内容
+            ListeningMode mode = aec_mode_ == kAecOff ? kListeningModeAutoStop : kListeningModeRealtime;
+            SetListeningMode(mode);
+
+            ESP_LOGI(TAG, "[PHASE 1 TEST] Reminder message not sent yet: '%s'", pending_reminder_message_.c_str());
+
+            // 在屏幕显示唤醒词
             auto display = Board::GetInstance().GetDisplay();
             if (display) {
-                display->SetChatMessage("user", query.c_str());
+                display->SetChatMessage("user", wake_word.c_str());
             }
+
+            // 清空缓存（测试阶段1不发送提醒）
+            pending_reminder_message_.clear();
         }
     }
 }
